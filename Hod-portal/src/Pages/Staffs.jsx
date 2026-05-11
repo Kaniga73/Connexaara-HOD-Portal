@@ -29,6 +29,7 @@ export default function Staffs() {
   const [showAdd, setShowAdd] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [addForm, setAddForm] = useState({ name: "", email: "", isTutor: false });
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const filtered = staffList.filter(
     (s) =>
@@ -58,14 +59,21 @@ export default function Staffs() {
     setEditStaff(null);
   }
 
-  function deactivateStaff() {
-    setStaffList((prev) =>
-      prev.map((s) =>
-        s.id === editStaff.id ? { ...s, status: s.status === "Active" ? "Deactivated" : "Active" } : s
-      )
-    );
-    setEditStaff(null);
-  }
+function requestDeactivate() {
+  setConfirmAction({ staff: editStaff, action: editStaff.status === "Active" ? "deactivate" : "activate" });
+}
+
+function confirmDeactivate() {
+  setStaffList((prev) =>
+    prev.map((s) =>
+      s.id === confirmAction.staff.id
+        ? { ...s, status: s.status === "Active" ? "Deactivated" : "Active" }
+        : s
+    )
+  );
+  setConfirmAction(null);
+  setEditStaff(null);
+}
 
   function addStaff() {
     if (!addForm.name.trim() || !addForm.email.trim()) return;
@@ -269,9 +277,12 @@ export default function Staffs() {
                   <span className="toggle-knob" />
                 </button>
               </div>
-              <button className="btn-deactivate" onClick={deactivateStaff}>
-                {editStaff.status === "Active" ? "Deactivate Staff" : "Activate Staff"}
-              </button>
+              <button
+  className={`btn-deactivate ${editStaff.status === "Deactivated" ? "btn-activate" : ""}`}
+  onClick={requestDeactivate}
+>
+  {editStaff.status === "Active" ? "Deactivate Staff" : "Activate Staff"}
+</button>
               <div className="edit-actions">
                 <button className="btn-cancel" onClick={() => setEditStaff(null)}>Cancel</button>
                 <button className="btn-save" onClick={saveEdit}>Save Changes</button>
@@ -322,6 +333,41 @@ export default function Staffs() {
           </div>
         </div>
       )}
+      {confirmAction && (
+  <div className="modal-overlay" onClick={() => setConfirmAction(null)}>
+    <div className="modal confirm-modal" onClick={(e) => e.stopPropagation()}>
+      <div className={`confirm-icon-wrap ${confirmAction.action === "deactivate" ? "confirm-danger" : "confirm-success"}`}>
+        {confirmAction.action === "deactivate" ? (
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+</svg>
+        ) : (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        )}
+      </div>
+      <h2 className="confirm-title">
+        {confirmAction.action === "deactivate" ? "Deactivate Staff?" : "Activate Staff?"}
+      </h2>
+      <p className="confirm-desc">
+        <strong>{confirmAction.staff.name}</strong>{" "}
+        {confirmAction.action === "deactivate"
+          ? "will lose all access to the system. This action can be reviewed by an admin."
+          : "will regain full access to the system."}
+      </p>
+      <div className="confirm-actions">
+        <button className="btn-cancel" onClick={() => setConfirmAction(null)}>Cancel</button>
+        <button
+          className={`btn-confirm ${confirmAction.action === "deactivate" ? "btn-confirm-danger" : "btn-confirm-success"}`}
+          onClick={confirmDeactivate}
+        >
+          {confirmAction.action === "deactivate" ? "Deactivate" : "Activate"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
