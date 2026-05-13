@@ -18,6 +18,7 @@ const navItems = [
   { label: "Staffs", path: "/staffs", icon: faUsers },
   { label: "ODs", path: "/ods", icon: faCalendarDays },
   { label: "Batches", path: "/batches", icon: faCalendarDays },
+  { label: "Events", path: "/events", icon: faCalendarDays },
   { label: "Profile", path: "/profile", icon: faUser },
 ];
 

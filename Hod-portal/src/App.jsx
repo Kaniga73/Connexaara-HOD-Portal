@@ -5,6 +5,7 @@ import Home from "./Pages/Home";
 import Staffs from "./Pages/Staffs";
 import Od from "./Pages/Od";
 import Batches from "./Pages/Batches";
+import Events from "./Pages/Event";
 import Profile from "./Pages/Profile";
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/staffs" element={<Staffs />} />
           <Route path="/ods" element={<Od />} />
           <Route path="/batches" element={<Batches />} />
+          <Route path="/events" element={<Events />} />
           <Route path="/profile" element={<Profile />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
