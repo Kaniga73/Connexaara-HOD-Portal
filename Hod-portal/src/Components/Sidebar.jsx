@@ -41,7 +41,7 @@ export default function Sidebar({ onLogout, onCollapse }) {
       <div className="sidebar-header">
         <div className="sidebar-logo-area">
           <img src={loginlogo} alt="Connexara Logo" className="sidebar-logo-img" />
-          {!collapsed && <span className="sidebar-brand">Connexara</span>}
+          {!collapsed && <span className="sidebar-brand">Connexaara</span>}
         </div>
 
         <button
