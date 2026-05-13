@@ -46,7 +46,7 @@ export default function Events() {
       startDate: form.startDate,
       endDate: form.endDate,
       thumbnailURL: form.thumbnailURL,
-      tag: "Computer Science and Engineering",
+      tag: "CSE",
     };
     setEvents((prev) => [newEvent, ...prev]);
     setForm(defaultForm);
