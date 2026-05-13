@@ -4,11 +4,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faHome,
   faUsers,
-  faCalendarDays,
   faUser,
   faRightFromBracket,
   faChevronRight,
   faChevronLeft,
+   faFileLines,
+  faGraduationCap,
+  faCalendarDays,
 } from "@fortawesome/free-solid-svg-icons";
 import loginlogo from "../assets/loginlogo.png";
 import "../Styles/Sidebar.css";
@@ -16,12 +18,11 @@ import "../Styles/Sidebar.css";
 const navItems = [
   { label: "Home", path: "/home", icon: faHome },
   { label: "Staffs", path: "/staffs", icon: faUsers },
-  { label: "ODs", path: "/ods", icon: faCalendarDays },
-  { label: "Batches", path: "/batches", icon: faCalendarDays },
+  { label: "ODs", path: "/ods", icon:  faFileLines },
+  { label: "Batches", path: "/batches", icon: faGraduationCap },
   { label: "Events", path: "/events", icon: faCalendarDays },
   { label: "Profile", path: "/profile", icon: faUser },
 ];
-
 export default function Sidebar({ onLogout, onCollapse }) {
   const navigate = useNavigate();
   const location = useLocation();
