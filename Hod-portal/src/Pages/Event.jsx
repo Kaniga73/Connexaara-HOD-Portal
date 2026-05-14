@@ -70,15 +70,13 @@ export default function Events() {
             ← Back to Events
           </button>
 
-          {selectedEvent.thumbnailURL ? (
-            <img
-              src={selectedEvent.thumbnailURL}
-              alt={selectedEvent.name}
-              className="event-detail-thumb"
-            />
-          ) : (
-            <div className="event-detail-thumb-placeholder">🎉</div>
-          )}
+        {selectedEvent.thumbnailURL && (
+  <img
+    src={selectedEvent.thumbnailURL}
+    alt={selectedEvent.name}
+    className="event-detail-thumb"
+  />
+)}
 
           <div className="event-detail-top">
             <h1 className="event-detail-name">{selectedEvent.name}</h1>
@@ -136,7 +134,7 @@ export default function Events() {
           <>
             {events.length === 0 ? (
               <div className="events-empty">
-                <span className="events-empty-icon">📅</span>
+               
                 <p className="events-empty-text">No events created yet.</p>
               </div>
             ) : (
@@ -154,8 +152,11 @@ export default function Events() {
                         className="event-card-thumb"
                       />
                     ) : (
-                      <div className="event-card-thumb-placeholder">🎉</div>
+                      <div className="event-card-thumb-placeholder">
+                        <span>No thumbnail</span>
+                      </div>
                     )}
+
                     <div className="event-card-body">
                       <div className="event-card-top">
                         <h3 className="event-card-name">{ev.name}</h3>
@@ -235,7 +236,7 @@ export default function Events() {
             </div>
 
             {/* Thumbnail */}
-            <div className="events-form-group">
+               <div className="events-form-group">
               <label className="events-label">Thumbnail Image (Optional)</label>
               <div className="events-upload">
                 <input type="file" accept="image/*" onChange={handleImage} />
@@ -246,15 +247,12 @@ export default function Events() {
                     className="events-upload-preview"
                   />
                 ) : (
-                  <>
-                    <span className="events-upload-icon">🖼️</span>
-                    <span className="events-upload-text">Click to select image</span>
-                  </>
+                  <span className="events-upload-text">Click to select image</span>
                 )}
               </div>
             </div>
 
-            {/* Submit — centered, auto width */}
+            {/* Submit */}
             <div className="events-submit-btn-wrapper">
               <button className="events-submit-btn" onClick={handleSubmit}>
                 Create Event

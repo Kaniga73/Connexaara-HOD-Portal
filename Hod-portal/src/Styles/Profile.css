@@ -399,3 +399,20 @@
     padding: 24px 16px;
   }
 }
+/* ─── Validation Styles ─────────────────────────────── */
+
+.profile-input-error {
+  border-color: #ef4444 !important;
+  background: #fef2f2 !important;
+}
+
+.profile-input-error:focus {
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.12) !important;
+}
+
+.profile-error-text {
+  font-size: 12px;
+  color: #ef4444;
+  margin-top: 4px;
+  font-weight: 500;
+}
