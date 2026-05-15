@@ -7,6 +7,7 @@ import Od from "./Pages/Od";
 import Batches from "./Pages/Batches";
 import Events from "./Pages/Event";
 import Profile from "./Pages/Profile";
+import Hackathon from "./Pages/Hackathon";
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
           <Route path="/staffs" element={<Staffs />} />
           <Route path="/ods" element={<Od />} />
           <Route path="/batches" element={<Batches />} />
+          <Route path="/hackathon" element={<Hackathon />} />
           <Route path="/events" element={<Events />} />
           <Route path="/profile" element={<Profile />} />
         </Route>

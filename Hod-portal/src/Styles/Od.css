@@ -77,7 +77,7 @@
   border-radius: 16px;
   padding: 4px;
   margin: 0 auto 34px;
-  width: 360px;
+ width: 380px; 
   height: 58px;
   gap: 4px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.04);
@@ -99,6 +99,7 @@
   color: #94a3b8;
   cursor: pointer;
   transition: all 0.2s ease;
+  padding: 11px 0;
 }
 
 .od-tab:hover {

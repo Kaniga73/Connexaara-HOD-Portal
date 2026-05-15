@@ -11,6 +11,7 @@ import {
    faFileLines,
   faGraduationCap,
   faCalendarDays,
+    faLaptopCode,
 } from "@fortawesome/free-solid-svg-icons";
 import loginlogo from "../assets/loginlogo.png";
 import "../Styles/Sidebar.css";
@@ -21,6 +22,7 @@ const navItems = [
   { label: "ODs", path: "/ods", icon:  faFileLines },
   { label: "Batches", path: "/batches", icon: faGraduationCap },
   { label: "Events", path: "/events", icon: faCalendarDays },
+   { label: "Hackathon", path: "/hackathon", icon: faLaptopCode },
   { label: "Profile", path: "/profile", icon: faUser },
 ];
 export default function Sidebar({ onLogout, onCollapse }) {

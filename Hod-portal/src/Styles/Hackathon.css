@@ -1,0 +1,738 @@
+/* ═══════════════════════════════════════════
+   Hackathon.css — purple/indigo theme
+   ═══════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Sora:wght@600;700&display=swap');
+
+:root {
+  --accent:    #6c47ff;
+  --accent-dk: #4f2fe0;
+  --accent-lt: #ede9ff;
+  --accent-mid:#8b6dff;
+  --dark:      #1a1a2e;
+  --mid:       #7b7fa6;
+  --light:     #f5f4ff;
+  --border:    #e8e6f8;
+  --white:     #ffffff;
+  --error:     #ef4444;
+  --radius:    16px;
+  --shadow:    0 4px 24px rgba(108,71,255,0.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Page container ── */
+.hk-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100vh;
+  background: var(--white);
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  color: var(--dark);
+}
+
+/* ── Header ── */
+.hk-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 24px 16px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.hk-back {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--dark);
+  line-height: 1;
+  padding: 0 4px;
+  transition: opacity .15s;
+}
+.hk-back:hover { opacity: .5; }
+
+.hk-header-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+/* ── Page Title (main list view) ── */
+.hk-page-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  text-align: center;
+  padding: 28px 0 4px;
+  color: var(--dark);
+}
+
+/* ── Tabs ── */
+.hk-tabs {
+  display: flex;
+  margin: 16px auto;
+  width: calc(100% - 48px);
+  max-width: 520px;
+  background: var(--light);
+  border-radius: 14px;
+  padding: 5px;
+  gap: 4px;
+}
+
+.hk-tab {
+  flex: 1;
+  padding: 11px 0;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mid);
+  cursor: pointer;
+  transition: background .2s, color .2s, box-shadow .2s;
+}
+
+.hk-tab--active {
+  background: var(--accent);
+  color: var(--white);
+  box-shadow: 0 4px 16px rgba(108,71,255,0.30);
+}
+
+/* ── Scrollable content ── */
+.hk-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px;
+}
+
+/* ── Cards grid — horizontal layout ── */
+.hk-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+/* Create form scroll keeps column layout */
+.hk-scroll--form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ═══════════════════════════
+   Active Events — Cards (events.css style)
+═══════════════════════════ */
+.hk-card {
+  background: var(--white);
+  border-radius: 18px;
+  box-shadow: 0 2px 16px rgba(108,71,255,0.07), 0 1px 4px rgba(0,0,0,0.04);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform .18s, box-shadow .18s;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  max-width: 100%;
+}
+.hk-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(108,71,255,0.14);
+}
+
+/* Full-width cover thumbnail — matches event-card-thumb */
+.hk-card-banner {
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--accent-lt) 0%, #dbeafe 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Cover image fills the banner fully */
+.hk-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hk-card-banner-text {
+  font-family: 'Sora', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: center;
+  padding: 12px;
+}
+
+.hk-card-body { padding: 14px 16px 16px; display: flex; flex-direction: column; }
+
+.hk-card-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.hk-card-name {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--dark);
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+
+.hk-group-badge {
+  background: var(--accent-lt);
+  color: var(--accent);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.hk-card-desc {
+  font-size: 12.5px;
+  color: #64748b;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.hk-card-divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 10px 0 12px;
+  border: none;
+}
+
+.hk-card-meta {
+  display: flex;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.hk-card-meta-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 2px;
+}
+
+.hk-card-meta-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+/* ═══════════════════════════
+   Hackathon Detail View
+═══════════════════════════ */
+.hk-detail-page {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Full-width cover banner in detail */
+.hk-detail-banner {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--accent-lt) 0%, #dbeafe 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hk-banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hk-banner-text {
+  font-family: 'Sora', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: center;
+  padding: 16px;
+}
+
+.hk-detail-body {
+  padding: 20px 24px 0;
+}
+
+.hk-detail-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.hk-detail-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.hk-detail-desc {
+  font-size: 14px;
+  color: var(--mid);
+  line-height: 1.6;
+}
+
+.hk-meta-row {
+  display: flex;
+  gap: 36px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border);
+  margin-top: 14px;
+}
+
+.hk-meta-item { display: flex; flex-direction: column; gap: 4px; }
+
+.hk-meta-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--mid);
+  letter-spacing: .05em;
+}
+
+.hk-meta-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+/* ── Registered section ── */
+.hk-registered-section {
+  padding: 0 24px 32px;
+}
+
+.hk-section-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.hk-empty {
+  font-size: 14px;
+  color: var(--mid);
+  text-align: center;
+  padding: 32px 0;
+}
+.hk-empty--center { margin-top: 60px; }
+
+.hk-team-block {
+  margin-bottom: 20px;
+}
+
+/* Larger team name */
+.hk-team-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 10px;
+  letter-spacing: -0.2px;
+}
+
+/* Member row */
+.hk-member-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background .15s, transform .15s;
+}
+.hk-member-row:hover {
+  background: var(--accent-lt);
+  transform: translateX(3px);
+}
+
+/* Avatar — color set via inline style from JS */
+.hk-member-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.hk-member-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hk-member-name { font-size: 14px; font-weight: 600; }
+.hk-member-role { font-size: 12px; color: var(--mid); }
+
+.hk-member-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  min-width: 60px;
+}
+
+.hk-member-progress-bar {
+  height: 6px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent-mid), var(--accent-dk));
+  min-width: 4px;
+  max-width: 60px;
+  transition: width .4s ease;
+}
+
+.hk-member-pct { font-size: 11px; font-weight: 700; color: var(--accent); }
+
+.hk-chevron { font-size: 22px; color: var(--mid); line-height: 1; }
+
+/* ═══════════════════════════
+   Student Detail View
+═══════════════════════════ */
+.hk-student-detail {
+  flex: 1;
+  padding: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+/* Avatar — color set via inline style from JS */
+.hk-student-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgba(108,71,255,0.30);
+}
+
+.hk-student-name {
+  font-family: 'Sora', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.hk-student-email {
+  font-size: 14px;
+  color: var(--mid);
+  margin-top: -8px;
+}
+
+.hk-role-badge {
+  background: var(--accent-lt);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 14px;
+  border-radius: 20px;
+}
+
+.hk-detail-card {
+  width: 100%;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.hk-detail-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--mid);
+  letter-spacing: .06em;
+  margin-bottom: 8px;
+}
+
+.hk-detail-value {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.hk-progress-bar-wrap {
+  width: 100%;
+  height: 10px;
+  background: #e0dcff;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.hk-progress-bar {
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--accent-mid), var(--accent-dk));
+  transition: width .5s ease;
+}
+
+.hk-progress-pct {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: right;
+}
+
+/* Mini member list inside student detail */
+.hk-mini-member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 8px;
+  transition: background .15s;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+.hk-mini-member:last-child { border-bottom: none; }
+.hk-mini-member:hover {
+  background: #f8f7ff;
+}
+
+/* Avatar — color set via inline style from JS */
+.hk-mini-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.hk-mini-name { flex: 1; font-size: 14px; font-weight: 600; }
+.hk-mini-role { font-size: 12px; color: var(--mid); }
+
+/* ═══════════════════════════
+   Create Form
+═══════════════════════════ */
+.hk-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.hk-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 4px;
+  margin-top: 10px;
+}
+
+.hk-input,
+.hk-textarea {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: var(--dark);
+  background: var(--white);
+  outline: none;
+  transition: border-color .2s;
+  resize: none;
+}
+
+.hk-input:focus,
+.hk-textarea:focus { border-color: var(--accent); }
+
+.hk-input--error { border-color: var(--error) !important; }
+
+.hk-error {
+  font-size: 12px;
+  color: var(--error);
+  margin-top: 2px;
+}
+
+/* ── Toggle row ── */
+.hk-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  margin-top: 10px;
+  background: var(--white);
+}
+
+.hk-toggle-row .hk-label {
+  margin: 0;
+  font-size: 15px;
+  color: var(--dark);
+  font-weight: 500;
+}
+
+.hk-toggle {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: #d1d5db;
+  position: relative;
+  cursor: pointer;
+  transition: background .25s;
+  flex-shrink: 0;
+}
+
+.hk-toggle--on { background: var(--accent); }
+
+.hk-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  transition: left .25s;
+}
+
+.hk-toggle--on .hk-toggle-thumb { left: 22px; }
+
+.hk-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.hk-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── Thumbnail upload ── */
+.hk-upload-zone {
+  width: 100%;
+  min-height: 80px;
+  border: 2px dashed var(--accent-mid);
+  border-radius: 12px;
+  background: var(--accent-lt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.hk-upload-zone:hover {
+  background: #e4ddff;
+  border-color: var(--accent);
+}
+
+.hk-upload-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.hk-upload-placeholder {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  pointer-events: none;
+  user-select: none;
+}
+
+.hk-thumb-preview {
+  width: 100%;
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  margin-top: 4px;
+  background: var(--accent-lt);
+}
+
+/* Create button */
+.hk-btn-create {
+  width: auto;
+  min-width: 200px;
+  padding: 13px 32px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-dk));
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Sora', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin: 20px auto 24px;
+  display: block;
+  letter-spacing: .02em;
+  box-shadow: 0 6px 20px rgba(108,71,255,0.30);
+  transition: transform .15s, box-shadow .15s;
+}
+
+.hk-btn-create:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(108,71,255,0.40);
+}
+
+.hk-btn-create:active {
+  transform: translateY(0);
+}
