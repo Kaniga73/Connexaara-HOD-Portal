@@ -443,6 +443,38 @@
     opacity: 1;
   }
 }
+/* ---- Error Banner ---- */
+.login-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1.5px solid rgba(220, 38, 38, 0.3);
+  border-radius: 10px;
+  padding: 11px 16px;
+  color: #c0392b;
+  font-size: 0.87rem;
+  font-weight: 600;
+  animation: fadeSlideUp 0.2s ease;
+}
+
+.login-error-icon {
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  color: #e74c3c;
+}
+
+/* ---- Input error state ---- */
+.input-wrapper.input-error .form-input {
+  border-color: rgba(220, 38, 38, 0.5);
+  background: #fff8f8;
+}
+
+.input-wrapper.input-error .form-input:focus {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 3.5px rgba(220, 38, 38, 0.1);
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 520px) {
   .login-card {

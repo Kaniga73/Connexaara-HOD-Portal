@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import "../Styles/login.css";
 import loginlogo from "../assets/loginlogo.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope, faLock, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faLock, faEye, faEyeSlash, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
+import { login } from "../api/authService";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -14,19 +15,41 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
+    if (error) setError(""); // clear error on new input
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (isSigningIn) return;
-    setIsSigningIn(true);
 
-    setTimeout(() => {
-      setIsSigningIn(false);
+    if (!formData.email.trim() || !formData.password.trim()) {
+      setError("Please enter your email and password.");
+      return;
+    }
+
+    setIsSigningIn(true);
+    setError("");
+
+    try {
+      await login(formData.email.trim(), formData.password);
       navigate("/home");
-    }, 1400);
+    } catch (err) {
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Something went wrong. Please try again.";
+      setError(msg);
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
+
+  // Allow pressing Enter in the password field to submit
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") handleSubmit();
   };
 
   return (
@@ -44,11 +67,19 @@ export default function Login() {
           </div>
 
           <div className="login-form">
+            {/* ── Error Banner ── */}
+            {error && (
+              <div className="login-error-banner" role="alert">
+                <FontAwesomeIcon icon={faTriangleExclamation} className="login-error-icon" />
+                <span>{error}</span>
+              </div>
+            )}
+
             <div className="form-group">
               <label htmlFor="email" className="form-label">
                 Email Address
               </label>
-              <div className="input-wrapper">
+              <div className={`input-wrapper${error ? " input-error" : ""}`}>
                 <span className="input-icon">
                   <FontAwesomeIcon icon={faEnvelope} />
                 </span>
@@ -59,8 +90,10 @@ export default function Login() {
                   placeholder="Enter your email"
                   value={formData.email}
                   onChange={handleChange}
+                  onKeyDown={handleKeyDown}
                   className="form-input"
                   autoComplete="email"
+                  disabled={isSigningIn}
                 />
               </div>
             </div>
@@ -69,7 +102,7 @@ export default function Login() {
               <label htmlFor="password" className="form-label">
                 Password
               </label>
-              <div className="input-wrapper">
+              <div className={`input-wrapper${error ? " input-error" : ""}`}>
                 <span className="input-icon">
                   <FontAwesomeIcon icon={faLock} />
                 </span>
@@ -80,8 +113,10 @@ export default function Login() {
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleChange}
+                  onKeyDown={handleKeyDown}
                   className="form-input"
                   autoComplete="current-password"
+                  disabled={isSigningIn}
                 />
                 <button
                   type="button"

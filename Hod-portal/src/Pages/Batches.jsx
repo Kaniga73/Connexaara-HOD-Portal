@@ -1,31 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import "../Styles/Batches.css";
-
-const initialBatches = [
-  {
-    id: 1, name: "CSE A", abbr: "CA",
-    department: "Computer Science and Engineering",
-    startYear: 2023, endYear: 2027, semester: 6, maxSemester: 8,
-    students: 0, subjects: 0, status: "active",
-    tutor: { name: "Adnaan", email: "adnaan@gmail.com" },
-    color: "#e91e8c", bg: "#fce4f0",
-  },
-  {
-    id: 2, name: "CSE B", abbr: "CB",
-    department: "Computer Science and Engineering",
-    startYear: 2023, endYear: 2027, semester: 6, maxSemester: 8,
-    students: 0, subjects: 0, status: "active",
-    tutor: { name: "Mohammed Saif", email: "saif@gmail.com" },
-    color: "#5c6bc0", bg: "#e8eaf6",
-  },
-];
-
-const STAFF = [
-  { name: "Adnaan",        email: "adnaan@gmail.com" },
-  { name: "Mohammed Saif", email: "saif@gmail.com"   },
-  { name: "Dr. Priya",     email: "priya@gmail.com"  },
-  { name: "Prof. Raj",     email: "raj@gmail.com"    },
-];
+import {
+  getBatches,
+  createBatch,
+  getBatchById,
+  getAvailableTutors,
+  assignTutor,
+  promoteBatch,
+  passoutBatch,
+} from "../api/batchService";
 
 const PALETTE = [
   { color: "#e91e8c", bg: "#fce4f0" },
@@ -35,7 +18,13 @@ const PALETTE = [
   { color: "#7b1fa2", bg: "#f3e5f5" },
 ];
 
+function getAbbr(name) {
+  if (!name) return "B";
+  return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+}
+
 function ord(n) {
+  if (!n) return "";
   const s = ["th","st","nd","rd"], v = n % 100;
   return n + (s[(v-20)%10] || s[v] || s[0]);
 }
@@ -55,72 +44,148 @@ function Toast({ message, onClose }) {
 }
 
 export default function Batches() {
-  const [batches, setBatches]           = useState(initialBatches);
+  const [batches, setBatches]           = useState([]);
+  const [meta, setMeta]                 = useState({ total: 0, page: 1, limit: 100 });
   const [activeTab, setActiveTab]       = useState("active");
   const [search, setSearch]             = useState("");
+  const [loading, setLoading]           = useState(false);
+  const [error, setError]               = useState("");
+
   const [showCreate, setShowCreate]     = useState(false);
   const [selectedId, setSelectedId]     = useState(null);
+  const [viewBatch, setViewBatch]       = useState(null); // Full details from API
   const [showPromote, setShowPromote]   = useState(false);
   const [showPassOut, setShowPassOut]   = useState(false);
   const [showTutor, setShowTutor]       = useState(false);
+  const [availableTutors, setAvailableTutors] = useState([]);
+  
   const [toast, setToast]               = useState(null);
+  const [saving, setSaving]             = useState(false);
 
   const [form, setForm] = useState({
-    name: "", startYear: "2023", endYear: "2027",
-    startingSemester: "1",
-    department: "Computer Science and Engineering",
-    tutor: STAFF[0],
+    name: "", startYear: new Date().getFullYear(), endYear: new Date().getFullYear() + 4,
+    currentSemester: 1
   });
 
-  const filtered = batches.filter(b =>
-    b.status === activeTab &&
-    b.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const fetchBatches = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const isPassedOut = activeTab === "passedout";
+      const result = await getBatches({
+        page: 1,
+        limit: 100,
+        search: search.trim() || undefined,
+        isPassedOut
+      });
+      setBatches(result.data || []);
+      setMeta(result.meta || { total: 0 });
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to load batches.");
+    } finally {
+      setLoading(false);
+    }
+  }, [activeTab, search]);
 
-  const activeCount = batches.filter(b => b.status === "active").length;
-  const passedCount = batches.filter(b => b.status === "passedout").length;
-  const viewBatch   = batches.find(b => b.id === selectedId) || null;
+  useEffect(() => {
+    const t = setTimeout(fetchBatches, 300);
+    return () => clearTimeout(t);
+  }, [fetchBatches]);
 
   function showToast(msg) {
     setToast(msg);
   }
 
   /* ── actions ── */
-  function handleCreate() {
+  async function handleCreate() {
     if (!form.name.trim()) return;
-    const abbr = form.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
-    const c    = PALETTE[batches.length % PALETTE.length];
-    setBatches([...batches, {
-      id: Date.now(), name: form.name, abbr,
-      department: form.department,
-      startYear: parseInt(form.startYear),
-      endYear:   parseInt(form.endYear),
-      semester:  parseInt(form.startingSemester) || 1,
-      maxSemester: 8, students: 0, subjects: 0, status: "active",
-      tutor: form.tutor, ...c,
-    }]);
-    setShowCreate(false);
-    setForm({ name:"", startYear:"2023", endYear:"2027", startingSemester:"1", department:"Computer Science and Engineering", tutor: STAFF[0] });
+    setSaving(true);
+    setError("");
+    try {
+      await createBatch({
+        name: form.name.trim(),
+        startYear: parseInt(form.startYear),
+        endYear: parseInt(form.endYear),
+        currentSemester: parseInt(form.currentSemester) || 1
+      });
+      setShowCreate(false);
+      setForm({ name: "", startYear: new Date().getFullYear(), endYear: new Date().getFullYear() + 4, currentSemester: 1 });
+      showToast("Batch created successfully!");
+      fetchBatches();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to create batch.");
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function handlePromote() {
-    const currentSem = batches.find(b => b.id === selectedId)?.semester || 0;
-    setBatches(batches.map(b => b.id === selectedId ? { ...b, semester: b.semester + 1 } : b));
-    setShowPromote(false);
-    setSelectedId(null);
-    showToast(`Batch promoted to ${ord(currentSem + 1)} semester successfully!`);
+  async function openView(id) {
+    setSelectedId(id);
+    setViewBatch(null); // Clear previous details
+    try {
+      const details = await getBatchById(id);
+      setViewBatch(details);
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to load batch details.");
+      setSelectedId(null);
+    }
   }
 
-  function handlePassOut() {
-    setBatches(batches.map(b => b.id === selectedId ? { ...b, status: "passedout" } : b));
-    setShowPassOut(false);
-    setSelectedId(null);
+  async function handlePromote() {
+    setSaving(true);
+    try {
+      await promoteBatch(selectedId);
+      setShowPromote(false);
+      setSelectedId(null);
+      showToast(`Batch promoted successfully!`);
+      fetchBatches();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to promote batch.");
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function handleChangeTutor(staff) {
-    setBatches(batches.map(b => b.id === selectedId ? { ...b, tutor: staff } : b));
-    setShowTutor(false);
-    showToast(`Tutor changed to ${staff.name} successfully!`);
+  async function handlePassOut() {
+    setSaving(true);
+    try {
+      await passoutBatch(selectedId);
+      setShowPassOut(false);
+      setSelectedId(null);
+      showToast(`Batch marked as passed out!`);
+      fetchBatches();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to pass out batch.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function openTutorModal() {
+    setShowTutor(true);
+    try {
+      const tutors = await getAvailableTutors();
+      setAvailableTutors(tutors);
+    } catch (err) {
+      alert("Failed to load available tutors.");
+    }
+  }
+
+  async function handleChangeTutor(staff) {
+    setSaving(true);
+    try {
+      await assignTutor(selectedId, staff.id);
+      setShowTutor(false);
+      showToast(`Tutor changed to ${staff.name} successfully!`);
+      // Refresh the detailed view and list
+      const details = await getBatchById(selectedId);
+      setViewBatch(details);
+      fetchBatches();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to assign tutor.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   /* ── render ── */
@@ -140,9 +205,7 @@ export default function Batches() {
         <div className="b-title-center">
           <h1 className="b-page-title">Batches</h1>
           <p className="b-page-subtitle">
-            {activeTab === "active"
-              ? `${activeCount} active batch${activeCount !== 1 ? "es" : ""}`
-              : `${passedCount} passed out batch${passedCount !== 1 ? "es" : ""}`}
+            {meta.total} {activeTab === "active" ? "active" : "passed out"} batch{meta.total !== 1 ? "es" : ""}
           </p>
         </div>
 
@@ -175,27 +238,35 @@ export default function Batches() {
           />
         </div>
 
+        {error && <div className="b-empty-state" style={{ color: "red" }}>{error}</div>}
+
         {/* List */}
         <div className="b-batch-list">
-          {filtered.length === 0 && <div className="b-empty-state">No batches found.</div>}
-          {filtered.map(b => (
-            <div className="b-batch-card" key={b.id}>
-              <div className="b-card-left">
-                <div className="b-batch-avatar" style={{ background: b.bg, color: b.color }}>{b.abbr}</div>
-                <div>
-                  <div className="b-batch-name">{b.name}</div>
-                  <div className="b-batch-years">{b.startYear} – {b.endYear}</div>
-                  <div className="b-batch-tags">
-                    <span className="b-tag b-tag-sem">{ord(b.semester)} Sem</span>
-                    <span className="b-tag b-tag-students">👤 {b.students}</span>
-                    {b.status === "passedout" && <span className="b-tag b-tag-passedout">Passed Out</span>}
+          {loading && <div className="b-empty-state">Loading...</div>}
+          {!loading && !error && batches.length === 0 && <div className="b-empty-state">No batches found.</div>}
+          {!loading && batches.map((b, idx) => {
+            const palette = PALETTE[idx % PALETTE.length];
+            return (
+              <div className="b-batch-card" key={b.id}>
+                <div className="b-card-left">
+                  <div className="b-batch-avatar" style={{ background: palette.bg, color: palette.color }}>
+                    {getAbbr(b.name)}
                   </div>
-                  <div className="b-batch-tutor">🎓 {b.tutor.name}</div>
+                  <div>
+                    <div className="b-batch-name">{b.name}</div>
+                    <div className="b-batch-years">{b.startYear} – {b.endYear}</div>
+                    <div className="b-batch-tags">
+                      <span className="b-tag b-tag-sem">{ord(b.currentSemester)} Sem</span>
+                      <span className="b-tag b-tag-students">👤 {b._count?.students || 0}</span>
+                      {b.isPassedOut && <span className="b-tag b-tag-passedout">Passed Out</span>}
+                    </div>
+                    <div className="b-batch-tutor">🎓 {b.tutor ? b.tutor.name : "No Tutor Assigned"}</div>
+                  </div>
                 </div>
+                <button className="b-view-btn" onClick={() => openView(b.id)}>View</button>
               </div>
-              <button className="b-view-btn" onClick={() => setSelectedId(b.id)}>View</button>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
       </main>
@@ -208,97 +279,109 @@ export default function Batches() {
               <h2 className="b-modal-title">Create Batch</h2>
               <button className="b-modal-close" onClick={() => setShowCreate(false)}>✕</button>
             </div>
+            {error && <div style={{ color: "red", padding: "10px", fontSize: "0.85rem" }}>{error}</div>}
+            
             <label className="b-field-label">Batch Name</label>
-            <input className="b-field-input" placeholder="e.g. CSE 2023-2027 A" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+            <input className="b-field-input" placeholder="e.g. CSE 2023-2027 A" value={form.name} onChange={e => setForm({...form, name: e.target.value})} disabled={saving} />
             <div className="b-field-row">
               <div className="b-field-col">
                 <label className="b-field-label">Start Year</label>
-                <input className="b-field-input" value={form.startYear} onChange={e => setForm({...form, startYear: e.target.value})} />
+                <input className="b-field-input" type="number" value={form.startYear} onChange={e => setForm({...form, startYear: e.target.value})} disabled={saving} />
               </div>
               <div className="b-field-col">
                 <label className="b-field-label">End Year</label>
-                <input className="b-field-input" value={form.endYear} onChange={e => setForm({...form, endYear: e.target.value})} />
+                <input className="b-field-input" type="number" value={form.endYear} onChange={e => setForm({...form, endYear: e.target.value})} disabled={saving} />
               </div>
             </div>
             <label className="b-field-label">Starting Semester</label>
-            <input className="b-field-input" value={form.startingSemester} onChange={e => setForm({...form, startingSemester: e.target.value})} />
-            <label className="b-field-label">Department</label>
-            <input className="b-field-input" value={form.department} onChange={e => setForm({...form, department: e.target.value})} />
-            <label className="b-field-label">Assign Tutor</label>
-            <select
-              className="b-field-input b-field-select"
-              value={form.tutor.email}
-              onChange={e => setForm({...form, tutor: STAFF.find(s => s.email === e.target.value)})}
-            >
-              {STAFF.map(s => (
-                <option key={s.email} value={s.email}>{s.name} — {s.email}</option>
-              ))}
-            </select>
+            <input className="b-field-input" type="number" value={form.currentSemester} onChange={e => setForm({...form, currentSemester: e.target.value})} disabled={saving} />
+            
             <div className="b-modal-actions">
-              <button className="b-btn-cancel" onClick={() => setShowCreate(false)}>Cancel</button>
-              <button className="b-btn-submit" onClick={handleCreate}>Create Batch</button>
+              <button className="b-btn-cancel" onClick={() => setShowCreate(false)} disabled={saving}>Cancel</button>
+              <button className="b-btn-submit" onClick={handleCreate} disabled={saving}>{saving ? "Creating..." : "Create Batch"}</button>
             </div>
           </div>
         </div>
       )}
 
       {/* ── Details Modal ── */}
-      {viewBatch && !showPromote && !showPassOut && !showTutor && (
+      {selectedId && !showPromote && !showPassOut && !showTutor && (
         <div className="b-modal-overlay" onClick={() => setSelectedId(null)}>
           <div className="b-modal-sheet b-details-sheet" onClick={e => e.stopPropagation()}>
             <div className="b-modal-header">
               <h2 className="b-modal-title">Batch Details</h2>
               <button className="b-modal-close" onClick={() => setSelectedId(null)}>✕</button>
             </div>
-            <div className="b-details-avatar-wrap">
-              <div className="b-details-avatar" style={{ background: viewBatch.bg, color: viewBatch.color }}>{viewBatch.abbr}</div>
-              <div className="b-details-name">{viewBatch.name}</div>
-              <div className="b-details-years">{viewBatch.startYear} – {viewBatch.endYear}</div>
-            </div>
-            <div className="b-details-table">
-              {[
-                ["Department", viewBatch.department],
-                ["Semester",   ord(viewBatch.semester)],
-                ["Students",   viewBatch.students],
-                ["Subjects",   viewBatch.subjects],
-              ].map(([k, v]) => (
-                <div className="b-details-row" key={k}>
-                  <span className="b-details-key">{k}</span>
-                  <span className="b-details-val">{v}</span>
-                </div>
-              ))}
-              <div className="b-details-row">
-                <span className="b-details-key">Status</span>
-                <span className={`b-details-val b-status-badge ${viewBatch.status==="active"?"b-status-active":"b-status-passed"}`}>
-                  {viewBatch.status === "active" ? "Active" : "Passed Out"}
-                </span>
-              </div>
-            </div>
-
-            <div className="b-section-title">Class Tutor</div>
-            <div className="b-tutor-card">
-              <div className="b-tutor-avatar" style={{ background:"#e8f5e9", color:"#388e3c" }}>{viewBatch.tutor.name[0]}</div>
-              <div>
-                <p className="b-tutor-name">{viewBatch.tutor.name}</p>
-                <p className="b-tutor-email">{viewBatch.tutor.email}</p>
-              </div>
-            </div>
-
-            {viewBatch.status === "active" && (
-              <button className="b-btn-change-tutor" onClick={() => setShowTutor(true)}>Change Tutor</button>
-            )}
-
-            {viewBatch.status === "active" && (
+            
+            {!viewBatch ? (
+              <div style={{ padding: "20px", textAlign: "center" }}>Loading details...</div>
+            ) : (
               <>
-                <div className="b-section-title">Batch Actions</div>
-                <div className="b-batch-actions-row">
-                  <span className="b-semester-info">Semester <strong>{viewBatch.semester}</strong> of <strong>{viewBatch.maxSemester}</strong></span>
-                  {viewBatch.semester >= viewBatch.maxSemester && <span className="b-final-badge">Final Semester</span>}
+                <div className="b-details-avatar-wrap">
+                  <div className="b-details-avatar" style={{ background: "#e8eaf6", color: "#5c6bc0" }}>
+                    {getAbbr(viewBatch.name)}
+                  </div>
+                  <div className="b-details-name">{viewBatch.name}</div>
+                  <div className="b-details-years">{viewBatch.startYear} – {viewBatch.endYear}</div>
                 </div>
-                {viewBatch.semester < viewBatch.maxSemester
-                  ? <button className="b-btn-promote" onClick={() => setShowPromote(true)}>↑ Promote to Next Semester</button>
-                  : <button className="b-btn-passout" onClick={() => setShowPassOut(true)}>🎓 Mark as Passed Out</button>
-                }
+                <div className="b-details-table">
+                  {[
+                    ["Department", viewBatch.department?.name || "—"],
+                    ["Semester",   ord(viewBatch.currentSemester)],
+                    ["Students",   viewBatch._count?.students || 0],
+                    ["Subjects",   viewBatch._count?.subjectAssignments || 0],
+                  ].map(([k, v]) => (
+                    <div className="b-details-row" key={k}>
+                      <span className="b-details-key">{k}</span>
+                      <span className="b-details-val">{v}</span>
+                    </div>
+                  ))}
+                  <div className="b-details-row">
+                    <span className="b-details-key">Status</span>
+                    <span className={`b-details-val b-status-badge ${!viewBatch.isPassedOut?"b-status-active":"b-status-passed"}`}>
+                      {!viewBatch.isPassedOut ? "Active" : "Passed Out"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="b-section-title">Class Tutor</div>
+                <div className="b-tutor-card">
+                  {viewBatch.tutor ? (
+                    <>
+                      <div className="b-tutor-avatar" style={{ background:"#e8f5e9", color:"#388e3c" }}>
+                        {viewBatch.tutor.name?.[0]}
+                      </div>
+                      <div>
+                        <p className="b-tutor-name">{viewBatch.tutor.name}</p>
+                        <p className="b-tutor-email">{viewBatch.tutor.email}</p>
+                      </div>
+                    </>
+                  ) : (
+                    <div>
+                      <p className="b-tutor-name" style={{ color: "#888" }}>No Tutor Assigned</p>
+                    </div>
+                  )}
+                </div>
+
+                {!viewBatch.isPassedOut && (
+                  <button className="b-btn-change-tutor" onClick={openTutorModal}>Change Tutor</button>
+                )}
+
+                {!viewBatch.isPassedOut && (
+                  <>
+                    <div className="b-section-title">Batch Actions</div>
+                    <div className="b-batch-actions-row">
+                      <span className="b-semester-info">
+                        Semester <strong>{viewBatch.currentSemester}</strong> of <strong>{(viewBatch.endYear - viewBatch.startYear) * 2}</strong>
+                      </span>
+                      {viewBatch.currentSemester >= (viewBatch.endYear - viewBatch.startYear) * 2 && <span className="b-final-badge">Final Semester</span>}
+                    </div>
+                    {viewBatch.currentSemester < (viewBatch.endYear - viewBatch.startYear) * 2
+                      ? <button className="b-btn-promote" onClick={() => setShowPromote(true)}>↑ Promote to Next Semester</button>
+                      : <button className="b-btn-passout" onClick={() => setShowPassOut(true)}>🎓 Mark as Passed Out</button>
+                    }
+                  </>
+                )}
               </>
             )}
           </div>
@@ -312,12 +395,12 @@ export default function Batches() {
             <div className="b-confirm-icon b-promote-icon">↑</div>
             <h3 className="b-confirm-title">Promote Batch?</h3>
             <p className="b-confirm-body">
-              <strong>{viewBatch.name}</strong> will be moved from <strong>{ord(viewBatch.semester)}</strong> to <strong>{ord(viewBatch.semester + 1)}</strong> semester.
+              <strong>{viewBatch.name}</strong> will be moved from <strong>{ord(viewBatch.currentSemester)}</strong> to <strong>{ord(viewBatch.currentSemester + 1)}</strong> semester.
               <span className="b-confirm-note">This will update the semester for all students in this batch.</span>
             </p>
             <div className="b-confirm-actions">
-              <button className="b-confirm-cancel" onClick={() => setShowPromote(false)}>Cancel</button>
-              <button className="b-confirm-blue" onClick={handlePromote}>Promote</button>
+              <button className="b-confirm-cancel" onClick={() => setShowPromote(false)} disabled={saving}>Cancel</button>
+              <button className="b-confirm-blue" onClick={handlePromote} disabled={saving}>{saving ? "Promoting..." : "Promote"}</button>
             </div>
           </div>
         </div>
@@ -334,8 +417,8 @@ export default function Batches() {
               <span className="b-confirm-note b-danger-note">This action cannot be undone.</span>
             </p>
             <div className="b-confirm-actions">
-              <button className="b-confirm-cancel" onClick={() => setShowPassOut(false)}>Cancel</button>
-              <button className="b-confirm-red" onClick={handlePassOut}>Confirm</button>
+              <button className="b-confirm-cancel" onClick={() => setShowPassOut(false)} disabled={saving}>Cancel</button>
+              <button className="b-confirm-red" onClick={handlePassOut} disabled={saving}>{saving ? "Processing..." : "Confirm"}</button>
             </div>
           </div>
         </div>
@@ -350,20 +433,27 @@ export default function Batches() {
               <button className="b-modal-close" onClick={() => setShowTutor(false)}>✕</button>
             </div>
             <div className="b-tutor-list">
-              {STAFF.map(s => (
-                <div
-                  key={s.email}
-                  className={`b-tutor-option${viewBatch.tutor.email===s.email?" b-tutor-selected":""}`}
-                  onClick={() => handleChangeTutor(s)}
-                >
-                  <div className="b-tutor-avatar" style={{ background:"#e8f5e9", color:"#388e3c" }}>{s.name[0]}</div>
-                  <div>
-                    <p className="b-tutor-name">{s.name}</p>
-                    <p className="b-tutor-email">{s.email}</p>
-                  </div>
-                  {viewBatch.tutor.email === s.email && <span className="b-tutor-check">✓</span>}
+              {availableTutors.length === 0 ? (
+                <div style={{ padding: "20px", textAlign: "center", color: "#666" }}>
+                  No available tutors found.
                 </div>
-              ))}
+              ) : (
+                availableTutors.map(s => (
+                  <div
+                    key={s.id}
+                    className={`b-tutor-option${viewBatch.tutor?.id===s.id?" b-tutor-selected":""}`}
+                    onClick={() => { if(!saving) handleChangeTutor(s); }}
+                    style={{ opacity: saving ? 0.6 : 1 }}
+                  >
+                    <div className="b-tutor-avatar" style={{ background:"#e8f5e9", color:"#388e3c" }}>{s.name[0]}</div>
+                    <div>
+                      <p className="b-tutor-name">{s.name}</p>
+                      <p className="b-tutor-email">{s.email}</p>
+                    </div>
+                    {viewBatch.tutor?.id === s.id && <span className="b-tutor-check">✓</span>}
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
